@@ -5,12 +5,17 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.concurrent.ExecutionException;
 
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
+import javafx.beans.value.ObservableValue;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.AnchorPane;
@@ -19,7 +24,7 @@ import javafx.stage.Stage;
 import Player.AudioPlayer;
 import javafx.stage.FileChooser.ExtensionFilter;
 
-public class FXMLController {
+public class FXMLController implements Initializable{
 
     @FXML
     private ResourceBundle resources;
@@ -40,10 +45,36 @@ public class FXMLController {
     private Button buttonStop;
 
     @FXML
-    private TextArea textField;
-
-    @FXML
     private Slider volumeSlider;
+    @FXML
+    private Slider Slider0;
+    @FXML
+    private Slider Slider1;
+    @FXML
+    private Slider Slider2;
+    @FXML
+    private Slider Slider3;
+    @FXML
+    private Slider Slider4;
+    @FXML
+    private Slider Slider5;
+    
+    @FXML
+    private Label label1;
+    @FXML
+    private Label label2;
+    @FXML
+    private Label label3;
+    @FXML
+    private Label label4;
+    @FXML
+    private Label label5;
+    @FXML
+    private Label label6;
+    @FXML
+    private Label label7;
+    @FXML
+    private Label label11;
     
     private AudioPlayer audioPlayer;
     
@@ -61,19 +92,125 @@ public class FXMLController {
     	if (selectedFile == null)
     		return;
     	this.audioPlayer = new AudioPlayer(selectedFile);
-    	
+    	label7.setText(selectedFile.getPath());
+    	System.out.println("PLAY");
+		buttonPlay.setText("Pause");
     	playThread = new Thread(()->{
-        	this.audioPlayer.play();
+        	try {
+                this.resetSliders();
+                this.audioPlayer.play();
+			} catch (InterruptedException | ExecutionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
         });
         playThread.start();
-    	
-    	
         
+    }
+    
+    private void resetSliders() {
+    	Slider0.setValue(1);
+        Slider1.setValue(1);
+        Slider2.setValue(1);
+        Slider3.setValue(1);
+        Slider4.setValue(1);
+        Slider5.setValue(1);
+        volumeSlider.setValue(1);
+		
+	}
+
+	@FXML
+    void play() {
+        if (this.audioPlayer != null) {
+            if (this.audioPlayer.getStopStatus()) {
+                playThread = new Thread(() -> {
+                    try {
+						this.audioPlayer.play();
+						System.out.println("PAUSE");
+						buttonPlay.setText("Pause");
+					} catch (InterruptedException | ExecutionException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+                });
+                playThread.start();
+            } else if (buttonPlay.getText().equals("Play")) {
+                this.audioPlayer.setPauseStatus(false);
+                buttonPlay.setText("Pause");
+                System.out.println("PLAY");
+            } else {
+            	this.audioPlayer.setPauseStatus(true);
+            	buttonPlay.setText("Play");
+            	System.out.println("PAUSE");
+            }
+        }
     }
 
     @FXML
-    void initialize() {
-
+    void stop() {
+    	System.out.println("STOP");
+        label7.setText("Path area");
+        if (this.audioPlayer != null) {
+            if (this.playThread != null)
+                this.playThread.interrupt();
+            this.audioPlayer.close();
+        }
+        resetSliders();
+        buttonPlay.setText("Play");
+        this.audioPlayer = null;
     }
+
+	@Override
+	public void initialize(URL url, ResourceBundle rb) {
+		this.listenSliders();
+        this.gainFromSlider();
+	}
+
+	private void gainFromSlider() {
+	    volumeSlider.valueProperty().addListener((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
+            audioPlayer.setGain(newValue.doubleValue() * newValue.doubleValue());
+            label11.setText(String.format("x%.3f", newValue.doubleValue() * newValue.doubleValue()));
+        });
+	}
+
+	private void listenSliders() {
+		
+		Slider0.valueProperty().addListener((observable, oldValue, newValue) -> {
+			String str = String.format("%.3f", (Math.log10(newValue.doubleValue())) * 20.0);
+            label1.setText(str);
+            audioPlayer.getEqualizer().getFilter(0).setGain(newValue.doubleValue());
+        });
+
+        Slider1.valueProperty().addListener((observable, oldValue, newValue) -> {
+            String str = String.format("%.3f", (Math.log10(newValue.doubleValue())) * 20.0);
+            label2.setText(str);
+            audioPlayer.getEqualizer().getFilter(1).setGain(newValue.doubleValue());
+        });
+
+        Slider2.valueProperty().addListener((observable, oldValue, newValue) -> {
+        	String str = String.format("%.3f", (Math.log10(newValue.doubleValue())) * 20.0);
+            label3.setText(str);
+            audioPlayer.getEqualizer().getFilter(2).setGain(newValue.doubleValue());
+        });
+
+        Slider3.valueProperty().addListener((observable, oldValue, newValue) -> {
+        	String str = String.format("%.3f", (Math.log10(newValue.doubleValue())) * 20.0);
+            label4.setText(str);
+            audioPlayer.getEqualizer().getFilter(3).setGain(newValue.doubleValue());
+        });
+
+        Slider4.valueProperty().addListener((observable, oldValue, newValue) -> {
+        	String str = String.format("%.3f", (Math.log10(newValue.doubleValue())) * 20.0);
+            label5.setText(str);
+            audioPlayer.getEqualizer().getFilter(4).setGain(newValue.doubleValue());
+        });
+
+        Slider5.valueProperty().addListener((observable, oldValue, newValue) -> {
+        	String str = String.format("%.3f", (Math.log10(newValue.doubleValue())) * 20.0);
+            label6.setText(str);
+            audioPlayer.getEqualizer().getFilter(5).setGain(newValue.doubleValue());
+        });
+		
+	}
 
 }
