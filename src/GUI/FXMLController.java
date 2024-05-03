@@ -83,6 +83,12 @@ public class FXMLController implements Initializable{
     @FXML
     private CheckBox checkIir;
     
+    @FXML
+    private CheckBox checkChor;
+
+    @FXML
+    private CheckBox checkOverdrive;
+    
     private AudioPlayer audioPlayer;
     
     private Thread playThread;
@@ -239,5 +245,21 @@ public class FXMLController implements Initializable{
         });
 		
 	}
+	
+    @FXML
+    void chorCheckBox() {
+    	System.out.println("CHORUS");
+        if (this.checkChor.isSelected())
+            this.audioPlayer.setChor(true);
+        else this.audioPlayer.setChor(false);
+    }
+
+    @FXML
+    void overdriveCheckBox(ActionEvent event) {
+    	System.out.println("OVERDRIVE");
+        if (this.checkOverdrive.isSelected())
+            this.audioPlayer.setOverdrive(true);
+        else this.audioPlayer.setOverdrive(false);
+    }
 
 }

@@ -3,6 +3,7 @@ package Player;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.concurrent.ExecutionException;
@@ -16,6 +17,9 @@ import javax.sound.sampled.SourceDataLine;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
 import equalizer.Equalizer;
+import effects.Chorus;
+import effects.Delay;
+import effects.Overdrive;
 
 public class AudioPlayer {
 
@@ -27,9 +31,14 @@ public class AudioPlayer {
 	private boolean pauseStatus;
 	private boolean type_of_filters;
 	
+	private final Chorus chorus;
+    private boolean isChor;
+    private final Overdrive overdrive;
+    private boolean isOverdrive;
+	
 	private double gain;
 	private final byte[] buff;
-	private final int BUFF_SIZE = 32768;
+	private final static int BUFF_SIZE = 32768;
 	private final int kolOt = 2;
 	private int i = 0;
 	private short[] arrayOfShort = new short[BUFF_SIZE / 2];
@@ -45,6 +54,10 @@ public class AudioPlayer {
 		this.type_of_filters = type;
 		this.equalizer = new Equalizer(this.type_of_filters);
 		this.gain = 1.0;
+		this.isOverdrive = false;
+		this.overdrive = new Overdrive();
+		this.isChor = false;
+		this.chorus = new Chorus();
 
 	}
 
@@ -57,46 +70,58 @@ public class AudioPlayer {
 
 			this.audioInputStream.read(this.buff, 0, BUFF_SIZE);
 
-			for (int l = 0, j = 0; j < BUFF_SIZE; j += 4, l++) {
+			for (int l = 0, j = 0; j < BUFF_SIZE; j += 2, l++) {
 				arrayOfShort[l] = (short) ((ByteBuffer.wrap(this.buff, j, 2).order(java.nio.ByteOrder.LITTLE_ENDIAN).getShort() / 2) * this.gain);
 			}
 			
 			if (this.pauseStatus) this.pause();
 			
+			if (this.isOverdrive) {
+				this.overdrive(this.arrayOfShort);
+			}
+
+			if (this.isChor) {
+				this.chor(this.arrayOfShort);
+            }
+			
 			equalizer.setInputSignal(this.arrayOfShort, this.type_of_filters);
 			this.equalizer.equalization();
 			this.arrayOfShort = equalizer.getOutputSignal();
 			
-			for (int k = 0, j = 0; j < BUFF_SIZE / 4; j++, k += 4) {
+			for (int k = 0, j = 0; j < BUFF_SIZE / 2; j++, k += 2) {
 				int vspom = arrayOfShort[j];
 				this.buff[k] = (byte) vspom;
 				this.buff[k + 1] = (byte) (vspom >>> 8);
-				this.buff[k + 2] = (byte) (vspom >>> 16);
-				this.buff[k + 3] = (byte) (vspom >>> 24);
 			}
 
 			sourceDataLine.write(this.buff, (i % kolOt) * BUFF_SIZE / kolOt, BUFF_SIZE / kolOt);
 
 			while (this.audioInputStream.read(this.buff, (i % kolOt) * BUFF_SIZE / kolOt, BUFF_SIZE / kolOt) != -1) {
 			
-				for (int l = 0, j = 0; j < BUFF_SIZE / kolOt; j += 4, l++) { 
+				for (int l = 0, j = 0; j < BUFF_SIZE / kolOt; j += 2, l++) { 
 					arrayOfShort[l] = (short) ((ByteBuffer.wrap(this.buff, j + (i % kolOt) * BUFF_SIZE / kolOt, 2).order(java.nio.ByteOrder.LITTLE_ENDIAN).getShort() / 2) * this.gain); 
 				}
 				
 				if (this.pauseStatus) this.pause();
 
                 if (this.stopStatus) break;
+                
+    			if (this.isOverdrive) {
+				this.overdrive(this.arrayOfShort);
+				}
+                
+                if (this.isChor) {
+                	this.chor(this.arrayOfShort);
+                }
 				
 				equalizer.setInputSignal(this.arrayOfShort, this.type_of_filters);
 				this.equalizer.equalization();
 				this.arrayOfShort = equalizer.getOutputSignal();
 				
-				for (int k = 0, j = 0; j < BUFF_SIZE / kolOt / 4; j++, k += 4) { 
+				for (int k = 0, j = 0; j < BUFF_SIZE / kolOt / 2; j++, k += 2) { 
 					int vspom = arrayOfShort[j]; 
 					this.buff[k + (i % kolOt) * BUFF_SIZE / kolOt] = (byte) vspom; 
 					this.buff[k + 1 + (i % kolOt) * BUFF_SIZE / kolOt] = (byte) (vspom >>> 8); 
-					this.buff[k + 2 + (i % kolOt) * BUFF_SIZE / kolOt] = (byte) (vspom >>> 16); 
-					this.buff[k + 3 + (i % kolOt) * BUFF_SIZE / kolOt] = (byte) (vspom >>> 24); 
 				} 
 				i += 1; 
                 sourceDataLine.write(this.buff, (i % kolOt) * BUFF_SIZE / kolOt, BUFF_SIZE / kolOt);
@@ -104,10 +129,6 @@ public class AudioPlayer {
 			
 			this.sourceDataLine.drain();
             this.sourceDataLine.close();
-			/*
-			 * sourceDataLine.write(this.buff, ((i + 1) % kolOt) * BUFF_SIZE / kolOt,
-			 * BUFF_SIZE / kolOt * (kolOt - 1 - ((i + 1) % kolOt)));
-			 */
 
 		} catch (LineUnavailableException | IOException e) {
 			e.printStackTrace();
@@ -149,5 +170,35 @@ public class AudioPlayer {
 	public void setGain(double gain) {
 		this.gain = gain;
 	}
+	
+	public static int getBuffSize() {
+		return BUFF_SIZE;
+	}
+	
+    private void overdrive(short[] inputSamples) {
+        this.overdrive.setInputSampleStream(inputSamples);
+        this.overdrive.createEffect();
+    }
+
+    public boolean distortionIsActive() {
+        return this.isOverdrive;
+    }
+
+    public void setOverdrive(boolean b) {
+        this.isOverdrive = b;
+    }
+
+    private void chor(short[] inputSamples) throws ExecutionException, InterruptedException {
+        chorus.setInputSampleStream(inputSamples);
+        chorus.createEffect();
+    }
+
+    public boolean chorIsActive() {
+        return this.isChor;
+    }
+
+    public void setChor(boolean b) {
+        this.isChor = b;
+    }
 
 }

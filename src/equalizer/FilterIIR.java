@@ -35,18 +35,19 @@ public class FilterIIR implements Callable<short[]> {
             double y = 0;
 
             // Проходим по всем секциям фильтра
-            for (int j = 0; j < numSections; j++) {
+            for (int j = 1; j < numSections; j += 2) {
                 // Получаем коэффициенты для текущей секции
                 double b0 = this.coffsNUMFilter[j][0];
                 double b1 = this.coffsNUMFilter[j][1];
                 double b2 = this.coffsNUMFilter[j][2];
+                double a0 = this.coffsDENFilter[j][0];
                 double a1 = this.coffsDENFilter[j][1];
                 double a2 = this.coffsDENFilter[j][2];
 
                 // Вычисляем выходное значение текущей секции
                 if (i >= 2) {
                     y = b0 * this.inputSignal[i] + b1 * this.inputSignal[i - 1] + b2 * this.inputSignal[i - 2]
-                            - a1 * this.outputSignal[i - 1] - a2 * this.outputSignal[i - 2];
+                           - a1 * this.outputSignal[i - 1] - a2 * this.outputSignal[i - 2];
                 } else if (i == 1) {
                     y = b0 * this.inputSignal[i] + b1 * this.inputSignal[i - 1]
                             - a1 * this.outputSignal[i - 1];

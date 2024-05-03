@@ -62,5 +62,7 @@
       <Label fx:id="label7" layoutX="18.0" layoutY="54.0" prefHeight="26.0" prefWidth="272.0" text="Path area" />
       <CheckBox fx:id="checkFir" layoutX="681.0" layoutY="30.0" mnemonicParsing="false" text="FIR filters" />
       <CheckBox fx:id="checkIir" layoutX="681.0" layoutY="58.0" mnemonicParsing="false" text="IIR filters" />
+      <CheckBox fx:id="checkChor" layoutX="580.0" layoutY="31.0" mnemonicParsing="false" onAction="#chorCheckBox" text="Chor" />
+      <CheckBox fx:id="checkOverdrive" layoutX="580.0" layoutY="58.0" mnemonicParsing="false" onAction="#overdriveCheckBox" text="Overdrive" />
    </children>
 </AnchorPane>
