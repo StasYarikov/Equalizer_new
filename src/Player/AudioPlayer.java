@@ -25,15 +25,16 @@ public class AudioPlayer {
 	private Equalizer equalizer;
 	private boolean stopStatus;
 	private boolean pauseStatus;
+	private boolean type_of_filters;
 	
 	private double gain;
 	private final byte[] buff;
 	private final int BUFF_SIZE = 32768;
-	private final int kolOt = 8;
+	private final int kolOt = 2;
 	private int i = 0;
 	private short[] arrayOfShort = new short[BUFF_SIZE / 2];
 
-	public AudioPlayer(File musicFile) throws UnsupportedAudioFileException, LineUnavailableException, IOException {
+	public AudioPlayer(File musicFile, boolean type) throws UnsupportedAudioFileException, LineUnavailableException, IOException {
 		ReadMusicFile readFile = new ReadMusicFile(musicFile);
 		this.sourceDataLine = readFile.getSourceDataLine();
 		this.audioInputStream = readFile.getAudioInputStream();
@@ -41,11 +42,9 @@ public class AudioPlayer {
 		format = new AudioFormat(aff.getSampleRate(), aff.getSampleSizeInBits(), aff.getChannels(), aff.isSigned(),
 				aff.isBigEndian());
 		this.buff = new byte[this.BUFF_SIZE];
-		this.equalizer = new Equalizer();
+		this.type_of_filters = type;
+		this.equalizer = new Equalizer(this.type_of_filters);
 		this.gain = 1.0;
-		/*
-		 * for (int i = 0; i < ind.length; i++) ind[i] = (byte) 100;
-		 */
 
 	}
 
@@ -64,7 +63,7 @@ public class AudioPlayer {
 			
 			if (this.pauseStatus) this.pause();
 			
-			equalizer.setInputSignal(this.arrayOfShort);
+			equalizer.setInputSignal(this.arrayOfShort, this.type_of_filters);
 			this.equalizer.equalization();
 			this.arrayOfShort = equalizer.getOutputSignal();
 			
@@ -88,7 +87,7 @@ public class AudioPlayer {
 
                 if (this.stopStatus) break;
 				
-				equalizer.setInputSignal(this.arrayOfShort);
+				equalizer.setInputSignal(this.arrayOfShort, this.type_of_filters);
 				this.equalizer.equalization();
 				this.arrayOfShort = equalizer.getOutputSignal();
 				

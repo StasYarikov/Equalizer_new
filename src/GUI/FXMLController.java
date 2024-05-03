@@ -15,6 +15,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextArea;
@@ -76,6 +77,12 @@ public class FXMLController implements Initializable{
     @FXML
     private Label label11;
     
+    @FXML
+    private CheckBox checkFir;
+
+    @FXML
+    private CheckBox checkIir;
+    
     private AudioPlayer audioPlayer;
     
     private Thread playThread;
@@ -91,7 +98,9 @@ public class FXMLController implements Initializable{
     	
     	if (selectedFile == null)
     		return;
-    	this.audioPlayer = new AudioPlayer(selectedFile);
+    	if (checkFir.isSelected() && checkIir.isSelected())
+    		return;
+    	this.audioPlayer = new AudioPlayer(selectedFile, checkFir.isSelected());
     	label7.setText(selectedFile.getPath());
     	System.out.println("PLAY");
 		buttonPlay.setText("Pause");
@@ -178,37 +187,55 @@ public class FXMLController implements Initializable{
 		Slider0.valueProperty().addListener((observable, oldValue, newValue) -> {
 			String str = String.format("%.3f", (Math.log10(newValue.doubleValue())) * 20.0);
             label1.setText(str);
-            audioPlayer.getEqualizer().getFilter(0).setGain(newValue.doubleValue());
+            if (checkFir.isSelected())
+            	audioPlayer.getEqualizer().getFilter(0).setGain(newValue.doubleValue());
+            else
+            	audioPlayer.getEqualizer().getFilterIIR(0).setGain(newValue.doubleValue());
         });
 
         Slider1.valueProperty().addListener((observable, oldValue, newValue) -> {
             String str = String.format("%.3f", (Math.log10(newValue.doubleValue())) * 20.0);
             label2.setText(str);
-            audioPlayer.getEqualizer().getFilter(1).setGain(newValue.doubleValue());
+            if (checkFir.isSelected())
+            	audioPlayer.getEqualizer().getFilter(1).setGain(newValue.doubleValue());
+            else
+            	audioPlayer.getEqualizer().getFilterIIR(1).setGain(newValue.doubleValue());
         });
 
         Slider2.valueProperty().addListener((observable, oldValue, newValue) -> {
         	String str = String.format("%.3f", (Math.log10(newValue.doubleValue())) * 20.0);
             label3.setText(str);
-            audioPlayer.getEqualizer().getFilter(2).setGain(newValue.doubleValue());
+            if (checkFir.isSelected())
+            	audioPlayer.getEqualizer().getFilter(2).setGain(newValue.doubleValue());
+            else
+            	audioPlayer.getEqualizer().getFilterIIR(2).setGain(newValue.doubleValue());
         });
 
         Slider3.valueProperty().addListener((observable, oldValue, newValue) -> {
         	String str = String.format("%.3f", (Math.log10(newValue.doubleValue())) * 20.0);
             label4.setText(str);
-            audioPlayer.getEqualizer().getFilter(3).setGain(newValue.doubleValue());
+            if (checkFir.isSelected())
+            	audioPlayer.getEqualizer().getFilter(3).setGain(newValue.doubleValue());
+            else
+            	audioPlayer.getEqualizer().getFilterIIR(3).setGain(newValue.doubleValue());
         });
 
         Slider4.valueProperty().addListener((observable, oldValue, newValue) -> {
         	String str = String.format("%.3f", (Math.log10(newValue.doubleValue())) * 20.0);
             label5.setText(str);
-            audioPlayer.getEqualizer().getFilter(4).setGain(newValue.doubleValue());
+            if (checkFir.isSelected())
+            	audioPlayer.getEqualizer().getFilter(4).setGain(newValue.doubleValue());
+            else
+            	audioPlayer.getEqualizer().getFilterIIR(4).setGain(newValue.doubleValue());
         });
 
         Slider5.valueProperty().addListener((observable, oldValue, newValue) -> {
         	String str = String.format("%.3f", (Math.log10(newValue.doubleValue())) * 20.0);
             label6.setText(str);
-            audioPlayer.getEqualizer().getFilter(5).setGain(newValue.doubleValue());
+            if (checkFir.isSelected())
+            	audioPlayer.getEqualizer().getFilter(5).setGain(newValue.doubleValue());
+            else
+            	audioPlayer.getEqualizer().getFilterIIR(5).setGain(newValue.doubleValue());
         });
 		
 	}
